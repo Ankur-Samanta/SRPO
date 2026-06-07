@@ -1,0 +1,25 @@
+- name: thought_agent
+  _target_: training.thought_agent_loop.ThoughtAgentLoop
+  max_thoughts: 20
+  max_tokens_per_thought: 512
+  thought_delimiter: "</thought>"
+  use_examples: false
+
+- name: thought_ics_agent
+  _target_: training.thought_ics_agent_loop.ThoughtICSAgentLoop
+  max_thoughts: 20
+  max_tokens_per_thought: 512
+  thought_delimiter: "</thought>"
+  use_examples: false
+  # L2: model only knows it was wrong (no ground truth shown in localization prompt)
+  autonomy_level: 2
+  # 10 correction iterations per trigger
+  max_ics_iterations: 10
+  # temp 0.7 for all generative phases
+  localization_temp: 0.5
+  localization_max_tokens: 4096
+  verifier_temp: 0.5
+  # Self-verification gates ICS (instead of oracle)
+  use_verifier_at_eval: true
+  # Bypass the temperature=0 guard so ICS runs during dedicated eval jobs
+  force_ics_at_eval: true

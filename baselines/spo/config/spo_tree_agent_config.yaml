@@ -1,0 +1,17 @@
+# SPO-tree agent loop configuration
+# Reference: SPO (arXiv:2505.23564) — §5 tree-based credit assignment.
+#
+# Defaults below are compute-matched to ~8 independent rollouts (≈0.85×),
+# trading the paper's symmetric (6,6,6)=216 leaves for a shallower (2,4)=8
+# tree that keeps 4 siblings at the leaf level (where most gradient flows).
+# The paper's Appendix H default for MATH is [6,6,6], M=600 — switch if you
+# have the compute budget and want paper parity.
+#
+# NOTE: rollout.n in the trainer config MUST equal ∏ branching_factors so
+# every leaf is materialized as one trajectory.
+- name: spo_tree_agent
+  _target_: baselines.spo.spo_tree_agent_loop.SPOTreeAgentLoop
+  branching_factors: [2, 4]     # 8 leaves; 2 siblings at depth 1, 4 at leaves
+  segment_tokens: 600
+  mc_temperature: 0.7
+  use_examples: false

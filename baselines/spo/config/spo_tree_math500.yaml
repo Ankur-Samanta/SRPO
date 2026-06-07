@@ -1,0 +1,123 @@
+# SPO-tree baseline config for MATH-500.
+#
+# Reference: SPO (arXiv:2505.23564) — §5.
+#
+# Key knobs:
+#   algorithm.adv_estimator     : spo_tree (sibling-relative advantages,
+#                                 bottom-up V̂, paper Eq. 4)
+#   rollout.n                   : ∏ branching_factors
+#                                 (MUST match the tree shape)
+#   agent loop                  : spo_tree_agent
+#
+# Default branching (2,4) → 8 leaves/prompt, compute-matched to 8-rollout
+# baselines. Per-step trajectory count = train_batch_size × 8.
+
+hydra:
+  searchpath:
+    - pkg://verl.trainer.config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+# --- Data ---
+data:
+  train_files: ${oc.env:HOME}/data/rlhf/math500/train.parquet
+  val_files: ${oc.env:HOME}/data/rlhf/math500/test.parquet
+  max_prompt_length: 2048
+  max_response_length: 4096
+  train_batch_size: 32
+  return_raw_chat: True
+
+# --- Model + Rollout ---
+actor_rollout_ref:
+  hybrid_engine: True
+
+  model:
+    path: meta-llama/Llama-3.2-3B-Instruct
+    external_lib: baselines.spo
+    lora_rank: 64
+    lora_alpha: 64
+    target_modules: all-linear
+    override_config:
+      attn_implementation: flash_attention_2
+
+  actor:
+    # Paper Eq. 4: PPO-clipped + per-trajectory (1/Z_s). We reproduce (1/Z_s)
+    # by pre-scaling per-sequence advantages (see spo_advantage.z_scale_advantages),
+    # which requires loss_agg_mode='token-mean'.
+    loss_agg_mode: token-mean
+    policy_loss:
+      loss_mode: vanilla
+    ppo_mini_batch_size: 8
+    ppo_micro_batch_size_per_gpu: 2
+    ppo_epochs: 1
+    grad_clip: 1.0
+    optim:
+      lr: 1e-6
+      weight_decay: 0.0
+
+  rollout:
+    name: vllm
+    log_prob_micro_batch_size_per_gpu: 8
+    temperature: 0.7
+    top_p: 0.95
+    top_k: -1
+    prompt_length: 2048
+    response_length: 5120
+    gpu_memory_utilization: 0.5
+    tensor_model_parallel_size: 1
+    data_parallel_size: 1
+    max_model_len: 8192
+    max_num_seqs: 256
+    enable_prefix_caching: True
+    enable_chunked_prefill: True
+    calculate_log_probs: True
+    logprobs_mode: null
+    dtype: bfloat16
+    load_format: auto
+
+    # CRITICAL: must equal ∏ branching_factors in spo_tree_agent_config.yaml.
+    # Default (2,4) → 8 (compute-matched to 8-rollout baselines).
+    # Paper symmetric shapes: [4,4,4]→64, [6,6,6]→216 — adjust both files.
+    n: 8
+
+    agent:
+      num_workers: 1
+      default_agent_loop: spo_tree_agent
+      agent_loop_config_path: baselines/spo/config/spo_tree_agent_config.yaml
+
+  ref:
+    log_prob_micro_batch_size_per_gpu: 16
+
+# --- Algorithm ---
+algorithm:
+  adv_estimator: spo_tree
+  norm_adv_by_std_in_grpo: False
+  gamma: 1.0
+  lam: 1.0
+  use_kl_in_reward: False
+  kl_ctrl:
+    type: fixed
+    kl_coef: 0.0001
+
+# --- Reward ---
+custom_reward_function:
+  path: baselines/spo/reward_fn.py
+  name: compute_score
+  reward_kwargs:
+    format_reward_cap: 0.0
+    format_reward_steps: 10
+
+# --- Trainer ---
+trainer:
+  total_epochs: 2
+  project_name: spo_baseline
+  experiment_name: math500_llama3b_spo_tree
+  logger: ["console", "wandb"]
+  n_gpus_per_node: 1
+  nnodes: 1
+  save_freq: 999
+  test_freq: 1
+  val_before_train: True
+  default_local_dir: checkpoints/${trainer.project_name}/${trainer.experiment_name}

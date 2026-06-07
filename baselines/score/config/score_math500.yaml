@@ -1,0 +1,140 @@
+# SCoRe (Self-Correction via Reinforcement Learning) baseline config for MATH-500
+#
+# Reference: Kumar et al. "Training Language Models to Self-Correct via
+#   Reinforcement Learning." ICLR 2025. arXiv:2409.12917.
+#
+# Key differences from thought_grpo_math500.yaml:
+#   - external_lib: baselines.score (registers SCoRe agent loop + advantage estimator)
+#   - adv_estimator: score (REINFORCE with shaped reward, NOT group-relative)
+#   - agent loop: score_agent (y1 + "try again" -> y2, no error localization)
+#   - reward_fn: baselines/score/reward_fn.py (base reward; shaping in scoring hook)
+#   - loss_mode: vanilla with ppo_epochs=1 (REINFORCE — no trajectory reuse)
+
+hydra:
+  searchpath:
+    - pkg://verl.trainer.config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+# --- Data ---
+data:
+  train_files: ${oc.env:HOME}/data/rlhf/math500/train.parquet
+  val_files: ${oc.env:HOME}/data/rlhf/math500/test.parquet
+  max_prompt_length: 2048
+  max_response_length: 4096
+  train_batch_size: 32
+  return_raw_chat: True
+
+# --- Model + Rollout ---
+actor_rollout_ref:
+  hybrid_engine: True
+
+  model:
+    path: meta-llama/Llama-3.2-3B-Instruct
+    external_lib: baselines.score
+    lora_rank: 64
+    lora_alpha: 64
+    target_modules: all-linear
+    override_config:
+      attn_implementation: flash_attention_2
+
+  actor:
+    policy_loss:
+      loss_mode: vanilla
+    ppo_mini_batch_size: 8
+    ppo_micro_batch_size_per_gpu: 2
+    # REINFORCE: single epoch (no trajectory reuse)
+    ppo_epochs: 1
+    grad_clip: 1.0
+    optim:
+      lr: 5e-5
+      weight_decay: 0.01
+
+  rollout:
+    name: vllm
+    log_prob_micro_batch_size_per_gpu: 16
+    temperature: 0.7
+    top_p: 0.95
+    top_k: -1
+    prompt_length: 2048
+    response_length: 5120
+    gpu_memory_utilization: 0.5
+    tensor_model_parallel_size: 1
+    data_parallel_size: 1
+    max_model_len: 8192
+    max_num_seqs: 256
+    enable_prefix_caching: True
+    enable_chunked_prefill: True
+    calculate_log_probs: True
+    logprobs_mode: null
+    dtype: bfloat16
+    load_format: auto
+
+    # Number of rollouts per prompt (mix of y1 and y2)
+    n: 8
+
+    # SCoRe agent loop
+    agent:
+      num_workers: 1
+      default_agent_loop: score_agent
+      agent_loop_config_path: baselines/score/config/score_agent_config.yaml
+
+  ref:
+    log_prob_micro_batch_size_per_gpu: 16
+
+# --- Algorithm ---
+# SCoRe uses REINFORCE with a per-sequence shaped reward AND a per-token
+# KL penalty that is applied y1/y2-specifically by the scoring hook.
+#
+# use_kl_in_reward=True here gates VERL's reference-policy log-prob
+# computation (see need_reference_policy in verl/trainer/ppo/utils.py), so
+# ref_log_prob lands in data.batch. The kl_coef is 0 because the scoring
+# hook applies KL itself using SCORE_BETA1/SCORE_BETA2 — VERL's own
+# apply_kl_penalty then becomes a no-op pass-through.
+#
+# Per-stage KL coefficients (env vars consumed by the scoring hook):
+#   Stage I  (SCORE_STAGE=1): beta2 on y1 tokens, beta1 on y2 tokens.
+#                             Paper Eq. 3 — heavy y1-only KL decouples
+#                             attempts. Defaults: beta1=0.01, beta2=0.1.
+#   Stage II (SCORE_STAGE=2): beta1 on both. Paper Eq. 4.
+#
+# Mid-run stage switch (reproduces paper's two-stage pipeline in one run):
+#   SCORE_STAGE1_STEPS=N   First N gradient steps run Stage I, then
+#                          Stage II from step N+1 onwards. Set to the
+#                          number of steps per epoch if you want 1 epoch
+#                          of Stage I followed by 1 epoch of Stage II.
+#                          If 0/unset, static SCORE_STAGE is used.
+algorithm:
+  adv_estimator: score
+  norm_adv_by_std_in_grpo: False
+  gamma: 1.0
+  lam: 1.0
+  use_kl_in_reward: True
+  kl_ctrl:
+    type: fixed
+    kl_coef: 0.0
+
+# --- Reward ---
+# Base math correctness reward. Shaped reward (self-correction bonus)
+# is applied by the scoring hook, not the reward function.
+custom_reward_function:
+  path: baselines/score/reward_fn.py
+  name: compute_score
+  reward_kwargs:
+    format_reward_cap: 0.0
+    format_reward_steps: 10
+
+# --- Trainer ---
+trainer:
+  total_epochs: 2
+  project_name: score_baseline
+  experiment_name: math500_llama3b_score
+  logger: ["console", "wandb"]
+  n_gpus_per_node: 1
+  nnodes: 1
+  save_freq: 999
+  test_freq: 1
+  val_before_train: True
+  default_local_dir: checkpoints/${trainer.project_name}/${trainer.experiment_name}
