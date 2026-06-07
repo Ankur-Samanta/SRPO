@@ -93,14 +93,6 @@ MODEL_HF[tgrpo_ace_olmo7b]="$OLMO7B"; MODEL_CKPT[tgrpo_ace_olmo7b]="${SCPO_DIR}/
 
 # --- SCGRPO (trained on ace) ---
 
-# --- SDPO (trained on d1) ---
-
-# --- SDPO (trained on d2) ---
-
-# --- SDPO-FULL (paper-faithful, trained on oly) ---
-MODEL_HF[sdpo_full_oly_olmo7b]="$OLMO7B"; MODEL_CKPT[sdpo_full_oly_olmo7b]="${SCPO_DIR}/checkpoints/sdpo_full_baseline/numina_oly_olmo7b_sdpo_full/global_step_24/actor/lora_adapter"; MODEL_IS_OLMO[sdpo_full_oly_olmo7b]=true
-MODEL_HF[sdpo_full_oly_olmo7b_s0]="$OLMO7B"; MODEL_CKPT[sdpo_full_oly_olmo7b_s0]="${SCPO_DIR}/checkpoints/sdpo_full_baseline/numina_oly_olmo7b_sdpo_full_s0/global_step_24/actor/lora_adapter"; MODEL_IS_OLMO[sdpo_full_oly_olmo7b_s0]=true
-MODEL_HF[sdpo_full_oly_olmo7b_s420]="$OLMO7B"; MODEL_CKPT[sdpo_full_oly_olmo7b_s420]="${SCPO_DIR}/checkpoints/sdpo_full_baseline/numina_oly_olmo7b_sdpo_full_s420/global_step_24/actor/lora_adapter"; MODEL_IS_OLMO[sdpo_full_oly_olmo7b_s420]=true
 
 # --- SCoRe (trained on d1) ---
 MODEL_HF[score_d1_olmo7b]="$OLMO7B"; MODEL_CKPT[score_d1_olmo7b]="${SCPO_DIR}/checkpoints/score_baseline/polaris_d1_olmo7b_score/global_step_24/actor/lora_adapter"; MODEL_IS_OLMO[score_d1_olmo7b]=true
@@ -227,7 +219,6 @@ MODEL_HF[srpo_clip_rand_oly_olmo7b_s420]="$OLMO7B"; MODEL_CKPT[srpo_clip_rand_ol
 # --- Seed 420 reruns (tgrpo, scgrpo, scgrpo_rand) ---
 MODEL_HF[tgrpo_oly_olmo7b_s420]="$OLMO7B";           MODEL_CKPT[tgrpo_oly_olmo7b_s420]="${SCPO_DIR}/checkpoints/thought_grpo/numina_oly_olmo7b_thought_s420/global_step_24/actor/lora_adapter";        MODEL_IS_OLMO[tgrpo_oly_olmo7b_s420]=true
 
-# --- SDPO seed variants (oly) ---
 
 
 # --- 2026-04-25 batch: SRPO variants on numina_oly (l2new prompt; l2n=T0.3, l2ng=greedy T0.0) ---
@@ -257,7 +248,6 @@ ALL_MODELS=(
  score_d1_olmo7b score_d2_olmo7b score_oly_olmo7b
  crgrpo_d1_olmo7b crgrpo_d2_olmo7b crgrpo_oly_olmo7b
     spotree_oly_olmo7b spotree_oly_olmo7b_s0 spotree_oly_olmo7b_s420
-    sdpo_full_oly_olmo7b sdpo_full_oly_olmo7b_s0 sdpo_full_oly_olmo7b_s420
     tgrpo_oly_qwen14b srpo_oly_qwen14b srpo_rand_oly_qwen14b srpo_nomask_oly_qwen14b
  srpo_oly_olmo7b_l2n srpo_oly_qwen14b_l2n srpo_oly_olmo7b_l2ng srpo_oly_qwen14b_l2ng
     srpo1x8_oly_olmo7b srpo1x8_oly_qwen14b srpo1x8_oly_olmo7b_rand srpo1x8_oly_qwen14b_rand

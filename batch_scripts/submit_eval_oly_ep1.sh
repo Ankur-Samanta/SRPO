@@ -75,7 +75,6 @@ MODEL_HF[score_oly_ep1_olmo7b]="$OLMO7B"
 MODEL_CKPT[score_oly_ep1_olmo7b]="${CKPT_ROOT}/score_baseline/numina_oly_olmo7b_score_ep1/global_step_12/actor/lora_adapter"
 MODEL_IS_OLMO[score_oly_ep1_olmo7b]=true
 
-# sdpo oly ep1
 
 
 # crgrpo oly ep1
@@ -92,7 +91,6 @@ MODEL_N_GPUS[tgrpo_oly_ep2_qwen14b]=4
 
 # scgrpo oly ep2 qwen14b (2 epochs, global_step_24)
 
-# sdpo oly ep2 qwen14b (2 epochs, global_step_24)
 
 # crgrpo oly ep2 qwen14b (2 epochs, global_step_24)
 MODEL_HF[crgrpo_oly_ep2_qwen14b]="$QWEN14B"

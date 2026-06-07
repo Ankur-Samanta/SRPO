@@ -1,6 +1,0 @@
-- name: sdpo_agent
-  _target_: training.thought_agent_loop.ThoughtAgentLoop
-  max_thoughts: 20
-  max_tokens_per_thought: 256
-  thought_delimiter: "</thought>"
-  use_examples: false

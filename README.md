@@ -71,7 +71,7 @@ common prefix and differ only after the reset point.
 
 We train **OLMo-3-7B-Instruct** and **Qwen-2.5-14B-Instruct** on math (NuminaMath Olympiads) and
 code (LiveCodeBench v6 medium) reasoning, and compare against **GRPO**, **RRPO**, and the
-self-correction / segment-level baselines **SCoRe**, **Critique-GRPO**, **SPO-Tree**, and **SDPO**.
+self-correction / segment-level baselines **SCoRe**, **Critique-GRPO**, and **SPO-Tree**.
 
 ### SRPO converges higher and faster
 
@@ -117,7 +117,7 @@ training/             # SRPO / RRPO / GRPO training (built on verl)
 ├── config/                    # hydra agent-loop configs
 └── scripts/                   # training launchers + prepare_datasets.py
 
-baselines/                     # SCoRe, Critique-GRPO, SPO-Tree, SDPO (full-logit)
+baselines/                     # SCoRe, Critique-GRPO, SPO-Tree
 thought_ics/                   # iterative self-correction: generation, localization, verification
 evaluation/                    # eval harness, thought-MDP, data utils
 vendor/                        # vendored dataset loaders + 3rd-party localization helpers
@@ -187,7 +187,6 @@ bash batch_scripts/submit_thought_grpo.sh olmo7b_numina_oly
 bash batch_scripts/submit_score.sh         olmo7b_numina_oly_tree   # SCoRe
 bash batch_scripts/submit_critique_grpo.sh olmo7b_numina_oly        # Critique-GRPO
 bash batch_scripts/submit_spo.sh           olmo7b_numina_oly_tree   # SPO-Tree
-bash batch_scripts/submit_sdpo_full.sh     olmo7b_numina_oly        # SDPO (full-logit)
 ```
 
 **Evaluation** across the benchmark suite:
