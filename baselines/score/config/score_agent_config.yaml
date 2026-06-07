@@ -1,0 +1,6 @@
+- name: score_agent
+  _target_: baselines.score.score_agent_loop.SCoReAgentLoop
+  max_thoughts: 20
+  max_tokens_per_thought: 256
+  thought_delimiter: "</thought>"
+  use_examples: false

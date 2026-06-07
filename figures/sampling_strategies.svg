@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-70 -20 1690 385"
+     font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <style>
+      .traj-correct   { stroke: #16a34a; stroke-width: 5.5; stroke-linecap: round; fill: none; }
+      .traj-incorrect { stroke: #dc2626; stroke-width: 5.5; stroke-linecap: round; fill: none; }
+      .traj-prefix    { stroke: #0f172a; stroke-width: 5.5; stroke-linecap: round; fill: none; }
+      .traj-discard   { stroke: #dc2626; stroke-width: 4.6; stroke-linecap: round; stroke-dasharray: 6 5; fill: none; opacity: 0.65; }
+      .manifold       { stroke: #0f172a; stroke-width: 5.5; stroke-linecap: round; fill: none; }
+      .divider        { stroke: #cbd5e0; stroke-width: 1.4; }
+      .bracket        { stroke: #94a3b8; stroke-width: 2.0; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+      .arrow-line     { stroke: #9333ea; stroke-width: 4.6; fill: none; stroke-linecap: round; }
+      .arrow-head     { fill: #9333ea; stroke: none; }
+      .resetdot       { fill: #0f172a; }
+      .panellab       { font-size: 30px; font-weight: 700; fill: #0f172a; }
+      .grouplab       { font-size: 26px; font-style: italic; fill: #64748b; }
+      .mark           { font-size: 32px; font-weight: 800; }
+      .check          { fill: #16a34a; }
+      .cross          { fill: #dc2626; }
+      .gen-arrow      { stroke: #475569; stroke-width: 3.0; fill: none; stroke-linecap: round; }
+      .gen-head       { fill: #475569; stroke: none; }
+      .gen-label      { font-size: 22px; font-style: italic; fill: #475569; }
+    </style>
+  </defs>
+
+  <!-- ===== Generation direction indicator (left side) ===== -->
+  <g id="gen-direction">
+    <line class="gen-arrow" x1="-30" y1="50" x2="-30" y2="232"/>
+    <path class="gen-head" d="M -38 222 L -30 244 L -22 222 Z"/>
+    <text class="gen-label" x="-50" y="140" text-anchor="middle"
+          transform="rotate(-90 -50 140)">generation</text>
+  </g>
+
+  <!-- ===== Panel dividers ===== -->
+  <line class="divider" x1="400"  y1="22" x2="400"  y2="290"/>
+  <line class="divider" x1="800"  y1="22" x2="800"  y2="290"/>
+  <line class="divider" x1="1200" y1="22" x2="1200" y2="290"/>
+
+  <!-- ===== Panel headings ===== -->
+  <text class="panellab" x="200"  y="16" text-anchor="middle">GRPO</text>
+  <text class="panellab" x="600"  y="16" text-anchor="middle">SRPO (1×4)</text>
+  <text class="panellab" x="1000" y="16" text-anchor="middle">SRPO (2×4)</text>
+  <text class="panellab" x="1400" y="16" text-anchor="middle">SRPO (1×8)</text>
+
+  <!-- =================== PANEL 1: GRPO ================== -->
+  <line class="traj-incorrect" x1="88"  y1="40" x2="88"  y2="240"/>
+  <line class="traj-correct"   x1="120" y1="40" x2="120" y2="240"/>
+  <line class="traj-incorrect" x1="152" y1="40" x2="152" y2="240"/>
+  <line class="traj-correct"   x1="184" y1="40" x2="184" y2="240"/>
+  <line class="traj-incorrect" x1="216" y1="40" x2="216" y2="240"/>
+  <line class="traj-correct"   x1="248" y1="40" x2="248" y2="240"/>
+  <line class="traj-incorrect" x1="280" y1="40" x2="280" y2="240"/>
+  <line class="traj-incorrect" x1="312" y1="40" x2="312" y2="240"/>
+  <g class="mark" text-anchor="middle" dominant-baseline="central">
+    <text class="cross" x="88"  y="263">×</text>
+    <text class="check" x="120" y="263">✓</text>
+    <text class="cross" x="152" y="263">×</text>
+    <text class="check" x="184" y="263">✓</text>
+    <text class="cross" x="216" y="263">×</text>
+    <text class="check" x="248" y="263">✓</text>
+    <text class="cross" x="280" y="263">×</text>
+    <text class="cross" x="312" y="263">×</text>
+  </g>
+  <path class="bracket" d="M 83 285 L 83 300 L 317 300 L 317 285"/>
+  <line class="bracket" x1="200" y1="300" x2="200" y2="312"/>
+  <text class="grouplab" x="200" y="332" text-anchor="middle">A</text>
+
+  <!-- =================== PANEL 2: SRPO (1×4) ================== -->
+  <!-- B1: 4 fresh rollouts -->
+  <line class="traj-correct"   x1="452" y1="40" x2="452" y2="240"/>
+  <line class="traj-incorrect" x1="484" y1="40" x2="484" y2="240"/>
+  <line class="traj-incorrect" x1="516" y1="40" x2="516" y2="240"/>
+  <line class="traj-incorrect" x1="548" y1="40" x2="548" y2="240"/>
+  <g class="mark" text-anchor="middle" dominant-baseline="central">
+    <text class="check" x="452" y="263">✓</text>
+    <text class="cross" x="484" y="263">×</text>
+    <text class="cross" x="516" y="263">×</text>
+    <text class="cross" x="548" y="263">×</text>
+  </g>
+  <path class="bracket" d="M 447 285 L 447 300 L 553 300 L 553 285"/>
+  <line class="bracket" x1="500" y1="300" x2="500" y2="312"/>
+  <text class="grouplab" x="500" y="332" text-anchor="middle">B1</text>
+
+  <!-- Reset cluster: shared prefix (BLACK) → reset@y=130, dashed-red discard, B2 suffixes -->
+  <line class="traj-prefix" x1="636" y1="40" x2="636" y2="130"/>
+  <path class="traj-discard" d="M 636 130 L 636 240"/>
+  <line class="manifold" x1="636" y1="130" x2="764" y2="130"/>
+  <line class="traj-correct"   x1="668" y1="130" x2="668" y2="240"/>
+  <line class="traj-incorrect" x1="700" y1="130" x2="700" y2="240"/>
+  <line class="traj-correct"   x1="732" y1="130" x2="732" y2="240"/>
+  <line class="traj-incorrect" x1="764" y1="130" x2="764" y2="240"/>
+  <g class="mark" text-anchor="middle" dominant-baseline="central">
+    <text class="cross" x="636" y="263">×</text>
+    <text class="check" x="668" y="263">✓</text>
+    <text class="cross" x="700" y="263">×</text>
+    <text class="check" x="732" y="263">✓</text>
+    <text class="cross" x="764" y="263">×</text>
+  </g>
+  <!-- Self-localization arrow: chord (618, 248) → (618, 130), control (592, 189) -->
+  <!-- Tangent at endpoint: (26, -59), unit (0.403, -0.915). Arrowhead 11 long, 6 half-wide. -->
+  <path class="arrow-line" d="M 618 248 Q 592 189 618 130"/>
+  <path class="arrow-head" d="M 618 130 L 619.6 142.5 L 608.5 138.0 Z"/>
+  <circle class="resetdot" cx="636" cy="130" r="6.5"/>
+  <path class="bracket" d="M 663 285 L 663 300 L 769 300 L 769 285"/>
+  <line class="bracket" x1="716" y1="300" x2="716" y2="312"/>
+  <text class="grouplab" x="716" y="332" text-anchor="middle">B2</text>
+
+  <!-- =================== PANEL 3: SRPO (2×4) ================== -->
+  <!-- C1: shallow reset at y=105 -->
+  <line class="traj-prefix" x1="836" y1="40" x2="836" y2="105"/>
+  <path class="traj-discard" d="M 836 105 L 836 240"/>
+  <line class="manifold" x1="836" y1="105" x2="964" y2="105"/>
+  <line class="traj-incorrect" x1="868" y1="105" x2="868" y2="240"/>
+  <line class="traj-correct"   x1="900" y1="105" x2="900" y2="240"/>
+  <line class="traj-incorrect" x1="932" y1="105" x2="932" y2="240"/>
+  <line class="traj-correct"   x1="964" y1="105" x2="964" y2="240"/>
+  <g class="mark" text-anchor="middle" dominant-baseline="central">
+    <text class="cross" x="836" y="263">×</text>
+    <text class="cross" x="868" y="263">×</text>
+    <text class="check" x="900" y="263">✓</text>
+    <text class="cross" x="932" y="263">×</text>
+    <text class="check" x="964" y="263">✓</text>
+  </g>
+  <!-- Tangent (26, -71.5), unit (0.342, -0.940). -->
+  <path class="arrow-line" d="M 818 248 Q 792 176.5 818 105"/>
+  <path class="arrow-head" d="M 818 105 L 820.4 117.7 L 809.0 113.6 Z"/>
+  <circle class="resetdot" cx="836" cy="105" r="6.5"/>
+  <path class="bracket" d="M 863 285 L 863 300 L 969 300 L 969 285"/>
+  <line class="bracket" x1="916" y1="300" x2="916" y2="312"/>
+  <text class="grouplab" x="916" y="332" text-anchor="middle">C1</text>
+
+  <!-- C2: deep reset at y=180 -->
+  <line class="traj-prefix" x1="1036" y1="40" x2="1036" y2="180"/>
+  <path class="traj-discard" d="M 1036 180 L 1036 240"/>
+  <line class="manifold" x1="1036" y1="180" x2="1164" y2="180"/>
+  <line class="traj-incorrect" x1="1068" y1="180" x2="1068" y2="240"/>
+  <line class="traj-incorrect" x1="1100" y1="180" x2="1100" y2="240"/>
+  <line class="traj-correct"   x1="1132" y1="180" x2="1132" y2="240"/>
+  <line class="traj-incorrect" x1="1164" y1="180" x2="1164" y2="240"/>
+  <g class="mark" text-anchor="middle" dominant-baseline="central">
+    <text class="cross" x="1036" y="263">×</text>
+    <text class="cross" x="1068" y="263">×</text>
+    <text class="cross" x="1100" y="263">×</text>
+    <text class="check" x="1132" y="263">✓</text>
+    <text class="cross" x="1164" y="263">×</text>
+  </g>
+  <!-- Tangent (26, -34), unit (0.607, -0.794). -->
+  <path class="arrow-line" d="M 1018 248 Q 992 214 1018 180"/>
+  <path class="arrow-head" d="M 1018 180 L 1015.9 192.1 L 1006.7 184.7 Z"/>
+  <circle class="resetdot" cx="1036" cy="180" r="6.5"/>
+  <path class="bracket" d="M 1063 285 L 1063 300 L 1169 300 L 1169 285"/>
+  <line class="bracket" x1="1116" y1="300" x2="1116" y2="312"/>
+  <text class="grouplab" x="1116" y="332" text-anchor="middle">C2</text>
+
+  <!-- =================== PANEL 4: SRPO (1×8) ================== -->
+  <line class="traj-prefix" x1="1272" y1="40" x2="1272" y2="145"/>
+  <path class="traj-discard" d="M 1272 145 L 1272 240"/>
+  <line class="manifold" x1="1272" y1="145" x2="1528" y2="145"/>
+  <line class="traj-incorrect" x1="1304" y1="145" x2="1304" y2="240"/>
+  <line class="traj-incorrect" x1="1336" y1="145" x2="1336" y2="240"/>
+  <line class="traj-correct"   x1="1368" y1="145" x2="1368" y2="240"/>
+  <line class="traj-incorrect" x1="1400" y1="145" x2="1400" y2="240"/>
+  <line class="traj-correct"   x1="1432" y1="145" x2="1432" y2="240"/>
+  <line class="traj-incorrect" x1="1464" y1="145" x2="1464" y2="240"/>
+  <line class="traj-correct"   x1="1496" y1="145" x2="1496" y2="240"/>
+  <line class="traj-incorrect" x1="1528" y1="145" x2="1528" y2="240"/>
+  <g class="mark" text-anchor="middle" dominant-baseline="central">
+    <text class="cross" x="1272" y="263">×</text>
+    <text class="cross" x="1304" y="263">×</text>
+    <text class="cross" x="1336" y="263">×</text>
+    <text class="check" x="1368" y="263">✓</text>
+    <text class="cross" x="1400" y="263">×</text>
+    <text class="check" x="1432" y="263">✓</text>
+    <text class="cross" x="1464" y="263">×</text>
+    <text class="check" x="1496" y="263">✓</text>
+    <text class="cross" x="1528" y="263">×</text>
+  </g>
+  <!-- Tangent (26, -51.5), unit (0.451, -0.893). -->
+  <path class="arrow-line" d="M 1254 248 Q 1228 196.5 1254 145"/>
+  <path class="arrow-head" d="M 1254 145 L 1254.4 157.7 L 1245.4 153.2 Z"/>
+  <circle class="resetdot" cx="1272" cy="145" r="6.5"/>
+  <path class="bracket" d="M 1299 285 L 1299 300 L 1533 300 L 1533 285"/>
+  <line class="bracket" x1="1416" y1="300" x2="1416" y2="312"/>
+  <text class="grouplab" x="1416" y="332" text-anchor="middle">D</text>
+</svg>

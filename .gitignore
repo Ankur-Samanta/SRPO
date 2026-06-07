@@ -1,0 +1,26 @@
+# ─── Large data / run artifacts (not for GitHub) ───────────────────────────
+checkpoints/
+wandb/
+experiments/
+outputs/
+logs/
+eval_generations/
+plots/
+
+# ─── Python ─────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# ─── Generated analysis outputs (regenerable from scripts/) ──────────────────
+scripts/grad_dump_analysis_out/
+scripts/grad_dump_analysis_full_out/
+scripts/grad_norm_actual.csv
+
+# ─── Local editor / agent settings (not for GitHub) ──────────────────────────
+.claude/
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+.DS_Store
+*.swp
