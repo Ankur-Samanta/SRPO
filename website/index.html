@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#081c24">
+  <meta name="description" content="Self-Reset Policy Optimization improves credit assignment in language-model reasoning by resetting to an intermediate state and resampling counterfactual continuations.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SRPO — Credit Assignment with Resets">
+  <meta property="og:description" content="Target the step that matters. Self-localized resets turn outcome rewards into precise learning signals for language-model reasoning.">
+  <meta property="og:url" content="https://ankur-samanta.github.io/SRPO/">
+  <meta property="og:image" content="https://ankur-samanta.github.io/SRPO/figures/tree_visualization.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>SRPO — Credit Assignment with Resets</title>
+  <script>document.documentElement.classList.add('js')</script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header" data-header>
+    <a class="wordmark" href="#top" aria-label="SRPO home">
+      <span class="wordmark-mark" aria-hidden="true">S</span>
+      <span>SRPO</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span></span><span></span><span></span>
+      <span class="sr-only">Open navigation</span>
+    </button>
+    <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+      <a href="#idea">Idea</a>
+      <a href="#theory">Theory</a>
+      <a href="#method">Method</a>
+      <a href="#results">Results</a>
+      <a href="#citation">Citation</a>
+      <a class="nav-github" href="https://github.com/Ankur-Samanta/SRPO">GitHub <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-content">
+        <p class="eyebrow reveal">Reinforcement learning · Credit assignment · Reasoning</p>
+        <h1 class="reveal">Credit assignment<br><em>with resets.</em></h1>
+        <p class="hero-deck reveal">
+          Self-Reset Policy Optimization finds the first error in a reasoning trace,
+          rewinds to the state before it, and learns from counterfactual continuations.
+        </p>
+        <div class="hero-actions reveal">
+          <a class="button button-primary" href="https://arxiv.org/abs/2605.25507">
+            Read the paper <span aria-hidden="true">↗</span>
+          </a>
+          <a class="button button-secondary" href="https://github.com/Ankur-Samanta/SRPO">
+            View the code <span aria-hidden="true">→</span>
+          </a>
+        </div>
+        <p class="authors reveal">
+          Ankur Samanta · Akshayaa Magesh · Ayush Jain · Youliang Yu · Daniel Jiang ·
+          Kavosh Asadi · Kaveh Hassani · Paul Sajda · Jalaj Bhandari · Yonathan Efroni
+        </p>
+      </div>
+
+      <div class="hero-diagram reveal" aria-label="A reasoning trace branches at a self-localized reset point">
+        <div class="diagram-label">One trace. One error. Better alternatives.</div>
+        <div class="trace-main">
+          <span class="trace-node complete">01</span>
+          <span class="trace-line"></span>
+          <span class="trace-node complete">02</span>
+          <span class="trace-line"></span>
+          <span class="trace-node reset">03</span>
+          <span class="trace-line failed"></span>
+          <span class="trace-node failed">×</span>
+        </div>
+        <div class="reset-tag">self-localized reset</div>
+        <div class="branches">
+          <div class="branch"><span></span><b>+1</b></div>
+          <div class="branch"><span></span><b>+1</b></div>
+          <div class="branch muted"><span></span><b>0</b></div>
+        </div>
+        <p>Re-enter the improvable state and compare what happens next.</p>
+      </div>
+
+      <div class="hero-metrics reveal" aria-label="Key results">
+        <div><strong>2–3×</strong><span>faster to matching performance</span></div>
+        <div><strong>0</strong><span>external step-level labels</span></div>
+        <div><strong>10</strong><span>benchmarks across reasoning domains</span></div>
+      </div>
+    </section>
+
+    <section class="section problem" id="idea">
+      <div class="section-heading reveal">
+        <p class="section-number">01 / The idea</p>
+        <h2>Outcome rewards know <em>if</em> a trace failed.<br>They do not know <em>where.</em></h2>
+      </div>
+      <div class="comparison-grid">
+        <article class="comparison-card conventional reveal">
+          <div class="card-label"><span>A</span> Standard RLVR</div>
+          <h3>One reward, smeared across every token.</h3>
+          <div class="token-strip" aria-hidden="true">
+            <span>correct</span><span>correct</span><span>error</span><span>answer</span>
+          </div>
+          <div class="reward-strip negative" aria-hidden="true">
+            <span>−</span><span>−</span><span>−</span><span>−</span>
+          </div>
+          <p>Correct steps are punished alongside the decision that caused the failure.</p>
+        </article>
+        <article class="comparison-card srpo reveal">
+          <div class="card-label"><span>B</span> Self-reset learning</div>
+          <h3>Compare continuations from the state that matters.</h3>
+          <div class="token-strip" aria-hidden="true">
+            <span class="masked">masked</span><span class="masked">masked</span><span>reset</span><span>suffix</span>
+          </div>
+          <div class="reward-strip positive" aria-hidden="true">
+            <span>·</span><span>·</span><span>+</span><span>+</span>
+          </div>
+          <p>The shared prefix is masked; gradients concentrate on alternative suffixes.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section theory" id="theory">
+      <div class="section-heading reveal">
+        <p class="section-number">02 / Why resets work</p>
+        <h2>The useful learning signal lives in
+          <em>improvable states.</em>
+        </h2>
+        <p>
+          The paper studies resets through Conservative Policy Iteration (CPI), the
+          policy-improvement framework underlying methods such as PPO and GRPO. The central
+          question is simple: if we can afford to explore only a few points in a reasoning
+          trace, which points should we choose?
+        </p>
+      </div>
+
+      <div class="theory-glossary reveal" aria-label="Core theory concepts">
+        <article>
+          <span class="theory-symbol">x</span>
+          <div><h3>State</h3><p>The prompt plus every thought generated so far.</p></div>
+        </article>
+        <article>
+          <span class="theory-symbol">y</span>
+          <div><h3>Action</h3><p>The model’s next complete reasoning step.</p></div>
+        </article>
+        <article>
+          <span class="theory-symbol">𝒢</span>
+          <div><h3>Improvable set</h3><p>States where some alternative action has advantage at least <var>τ</var>.</p></div>
+        </article>
+        <article>
+          <span class="theory-symbol">p<sub>π</sub></span>
+          <div><h3>Coverage</h3><p>The on-policy probability of reaching an improvable state.</p></div>
+        </article>
+      </div>
+
+      <div class="signal-story">
+        <div class="signal-copy reveal">
+          <p class="story-step">Step 1 · Find where improvement is possible</p>
+          <h3>Most visited states may have little useful signal.</h3>
+          <p>
+            A state is <strong><var>τ</var>-improvable</strong> when the policy could take a
+            different next action that is better by at least <var>τ</var>. If only one in ten
+            visited states has that property, then <var>p</var><sub>π</sub> = 0.1. Those rare
+            states dominate the possible improvement; sampling everywhere else spends rollout
+            budget where the gain does not live.
+          </p>
+        </div>
+        <div class="state-field reveal" aria-label="One improvable state among ten visited states">
+          <div class="field-label"><span>on-policy states</span><span>p<sub>π</sub> = 0.1</span></div>
+          <div class="state-dots" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span class="improvable"><b>𝒢</b></span><span></span><span></span><span></span>
+          </div>
+          <div class="field-key"><i></i> Improvable: a better action exists here</div>
+        </div>
+      </div>
+
+      <div class="signal-story reverse">
+        <div class="signal-copy reveal">
+          <p class="story-step">Step 2 · Avoid signal dilution</p>
+          <h3>Random sampling sees <var>τp</var><sub>π</sub>. Targeted sampling sees <var>τ</var>.</h3>
+          <p>
+            Random-reset CPI averages over every state it visits. Because an improvable state
+            appears only with probability <var>p</var><sub>π</sub>, its guaranteed advantage is
+            diluted from <var>τ</var> to <var>τp</var><sub>π</sub>. A credit-assignment oracle
+            conditions directly on the improvable set, preserving the full signal.
+          </p>
+        </div>
+        <div class="signal-meter reveal" aria-label="Targeted reset signal is ten times larger than random reset signal when coverage is ten percent">
+          <div class="meter-row random-meter">
+            <div><b>Random reset</b><span>averages over all states</span></div>
+            <div class="meter-track"><i style="--meter: 10%"></i></div>
+            <strong>τp<sub>π</sub></strong>
+          </div>
+          <div class="meter-row oracle-meter">
+            <div><b>Oracle reset</b><span>conditions on 𝒢</span></div>
+            <div class="meter-track"><i style="--meter: 100%"></i></div>
+            <strong>τ</strong>
+          </div>
+          <p>At <var>p</var><sub>π</sub> = 0.1, the estimation target is <b>10× larger.</b></p>
+        </div>
+      </div>
+
+      <div class="theory-payoff reveal">
+        <div class="payoff-intro">
+          <p class="story-step">Step 3 · Turn stronger signal into faster improvement</p>
+          <h3>Conditioning changes both estimation and the update.</h3>
+          <p>
+            Estimation error falls with the square root of the sample count. Making the target
+            signal <strong>1/<var>p</var><sub>π</sub> larger</strong> therefore cuts the expensive
+            rollout requirement by <strong>1/<var>p</var><sub>π</sub><sup>2</sup></strong>. And
+            because the policy changes only on the improvable set, CPI can take a
+            <strong>1/<var>p</var><sub>π</sub> larger</strong> conservative step.
+          </p>
+        </div>
+        <div class="payoff-cards">
+          <article>
+            <span>Sample complexity</span>
+            <strong>1 / p<sub>π</sub><sup>2</sup></strong>
+            <p>fewer expensive Q-rollouts</p>
+          </article>
+          <article>
+            <span>Per-iteration improvement</span>
+            <strong>1 / p<sub>π</sub></strong>
+            <p>larger guaranteed progress</p>
+          </article>
+          <article class="example-card">
+            <span>If p<sub>π</sub> = 0.1</span>
+            <strong>100× / 10×</strong>
+            <p>sample / iteration factors</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="guarantee reveal">
+        <div class="guarantee-heading">
+          <span>The formal guarantee</span>
+          <p>Suppressing shared factors and logarithmic terms</p>
+        </div>
+        <div class="guarantee-table" role="table" aria-label="Random reset and credit-oracle CPI guarantees">
+          <div class="guarantee-row guarantee-labels" role="row">
+            <span role="columnheader">CPI variant</span>
+            <span role="columnheader">Samples needed</span>
+            <span role="columnheader">Improvement per iteration</span>
+          </div>
+          <div class="guarantee-row random-row" role="row">
+            <strong role="cell">Random reset</strong>
+            <span role="cell">Õ(1 / τ²p<sub>π</sub>²)</span>
+            <span role="cell">Ω(τ²p<sub>π</sub>²)</span>
+          </div>
+          <div class="guarantee-row oracle-row" role="row">
+            <strong role="cell">Credit oracle</strong>
+            <span role="cell">Õ(1 / τ²)</span>
+            <span role="cell">Ω(τ²p<sub>π</sub>)</span>
+          </div>
+        </div>
+        <p class="guarantee-note">
+          Theorem 1 assumes a finite, realizable value-function class and bounded rewards. The
+          advantage off the improvable set is negligible in the regime highlighted here; in
+          RLVR, a correct trace has no error to improve.
+        </p>
+      </div>
+
+      <div class="approximate-oracle reveal">
+        <div class="approximate-heading">
+          <p class="story-step">The realistic case</p>
+          <h3>What if the localizer is imperfect?</h3>
+          <p>
+            A practical localizer selects an approximate set of reset states,
+            <var>𝒮</var>, rather than the true improvable set <var>𝒢</var>. Its mistakes
+            affect learning in two distinct ways.
+          </p>
+        </div>
+        <div class="error-modes">
+          <article>
+            <span class="error-symbol">β</span>
+            <div>
+              <h4>False discoveries dilute the signal.</h4>
+              <p>
+                If a fraction <var>β</var> of selected states are not actually
+                improvable, the guaranteed signal falls from <var>τ</var> to
+                <strong>(1−β)τ</strong>.
+              </p>
+            </div>
+          </article>
+          <article>
+            <span class="error-symbol">γ</span>
+            <div>
+              <h4>Misses reduce where the update applies.</h4>
+              <p>
+                Recall <var>γ</var> controls how many truly improvable states are
+                retained. Missing one does not corrupt the signal; it reduces the
+                mass of useful updates.
+              </p>
+            </div>
+          </article>
+        </div>
+        <div class="approximate-bound">
+          <span>Approximate-localizer guarantee</span>
+          <strong>improvement ≥ (1−β)<sup>2</sup> τ<sup>2</sup> p<sub>ν</sub> / 16HR<sub>max</sub></strong>
+          <p>Perfect localization is not required—the benefit degrades smoothly with precision and recall.</p>
+        </div>
+      </div>
+
+      <div class="theory-bridge reveal">
+        <div class="bridge-tag">Theory → practice</div>
+        <div>
+          <h3>The oracle is an idealization. Self-localization is the implementation.</h3>
+          <p>
+            The theoretical oracle answers, “does this state admit a significantly better
+            action?” In SRPO, the model approximates that oracle by identifying the first
+            erroneous thought in its own failed trace. The clean prefix before that error is a
+            state from which a better continuation may still recover the answer. It is an
+            imperfect proxy—but the experiments show it is effective.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section method" id="method">
+      <div class="section-heading narrow reveal">
+        <p class="section-number">03 / The method</p>
+        <h2>Reset. Resample. Reassign credit.</h2>
+        <p>
+          SRPO turns the model into its own credit-assignment oracle. After a failed rollout,
+          the policy identifies its first erroneous thought. We keep the clean prefix, sample
+          new suffixes from that shared state, and optimize their relative outcomes.
+        </p>
+      </div>
+
+      <ol class="steps reveal">
+        <li><span>01</span><div><strong>Roll out</strong><p>Generate an initial thought-by-thought solution.</p></div></li>
+        <li><span>02</span><div><strong>Localize</strong><p>Find the first erroneous reasoning step.</p></div></li>
+        <li><span>03</span><div><strong>Reset</strong><p>Return to the clean, improvable prefix.</p></div></li>
+        <li><span>04</span><div><strong>Resample</strong><p>Compare suffixes and update only what follows.</p></div></li>
+      </ol>
+
+      <figure class="paper-figure reveal">
+        <img src="figures/tree_visualization.png" alt="SRPO starts from a failed base rollout, localizes its first error, resets to the preceding clean prefix, and samples several continuations with different rewards." loading="lazy">
+        <figcaption>
+          <span>Figure 1</span>
+          The base policy self-localizes an error, resets to the preceding prefix, and samples
+          counterfactual suffixes. The shared prefix receives no gradient.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="section results" id="results">
+      <div class="section-heading reveal">
+        <p class="section-number">04 / Results</p>
+        <h2>More precise credit.<br><em>Faster learning.</em></h2>
+      </div>
+
+      <div class="result-grid">
+        <article class="result-card reveal">
+          <div class="result-copy">
+            <span class="result-index">A</span>
+            <h3>SRPO converges higher and faster.</h3>
+            <p>
+              On LiveCodeBench v6 medium with OLMo-3-7B, SRPO reaches matching pass rates
+              2–3× faster than GRPO and random resets, then continues to a higher final score.
+            </p>
+          </div>
+          <img src="figures/val_curves_lcb_medium.png" alt="Validation curves showing SRPO improving faster and reaching a higher pass rate than GRPO and RRPO on LiveCodeBench." loading="lazy">
+        </article>
+
+        <article class="result-card reveal">
+          <div class="result-copy">
+            <span class="result-index">B</span>
+            <h3>The gradient lands where it should.</h3>
+            <p>
+              Prefix masking removes the learning signal from the shared history. Credit is
+              focused on the suffix—the region where sampled decisions actually differ.
+            </p>
+          </div>
+          <img src="figures/grad_tree_p2_effective.png" alt="Per-thought gradient signal under an SRPO update, with shared prefix tokens masked and gradients concentrated after the reset." loading="lazy">
+        </article>
+      </div>
+
+      <article class="treerl-result reveal">
+        <div class="treerl-copy">
+          <span class="result-index">C</span>
+          <h3>SRPO remains ahead of matched tree search.</h3>
+          <p>
+            We compare against <a href="https://arxiv.org/abs/2506.11902">TreeRL</a>
+            using the same eight-terminal-rollout budget: two initial completions,
+            one entropy-selected branch point per completion, and three continuations
+            from each branch point. Results are three-seed averages over ten benchmarks.
+          </p>
+        </div>
+        <div class="benchmark-bars" aria-label="Ten-benchmark average comparison between SRPO and TreeRL">
+          <div class="model-comparison">
+            <span class="model-label">Qwen-2.5-14B</span>
+            <div class="bar-row"><span>SRPO</span><i><b style="--score: 86.4%"></b></i><strong>43.2</strong></div>
+            <div class="bar-row muted"><span>TreeRL</span><i><b style="--score: 74%"></b></i><strong>37.0</strong></div>
+            <em>+6.2 points</em>
+          </div>
+          <div class="model-comparison">
+            <span class="model-label">OLMo-3-7B</span>
+            <div class="bar-row"><span>SRPO</span><i><b style="--score: 94.6%"></b></i><strong>47.3</strong></div>
+            <div class="bar-row muted"><span>TreeRL</span><i><b style="--score: 75.6%"></b></i><strong>37.8</strong></div>
+            <em>+9.5 points</em>
+          </div>
+        </div>
+      </article>
+
+      <article class="wide-result reveal">
+        <div class="wide-result-copy">
+          <span class="result-index">D</span>
+          <h3>Precision is what makes resets pay off.</h3>
+          <p>
+            Corrections succeed far more often when sampling begins from a clean prefix.
+            SRPO's self-localization concentrates resets near the first error—where a new
+            continuation can still change the outcome.
+          </p>
+        </div>
+        <div class="wide-result-image">
+          <img src="figures/combined_4panel_eff5_lcb_medium_fine.png" alt="Four analyses of SRPO localization: reset distributions, comparison to frontier-model localization, correction rate by deviation from the oracle, and correction rate for clean versus erroneous prefixes." loading="lazy">
+        </div>
+      </article>
+    </section>
+
+    <section class="section sampling">
+      <div class="section-heading narrow reveal">
+        <p class="section-number">05 / Sampling design</p>
+        <h2>A controlled comparison under the same rollout budget.</h2>
+        <p>
+          SRPO and RRPO split eight rollouts into a fresh base group and a reset group. Reset
+          suffixes share the same history, making outcome differences informative about the
+          decisions after the chosen state.
+        </p>
+      </div>
+      <figure class="paper-figure sampling-figure reveal">
+        <img src="figures/sampling_strategies.svg" alt="Comparison of GRPO, RRPO, and SRPO sampling strategies under a fixed eight-rollout budget." loading="lazy">
+        <figcaption><span>Figure 2</span>Sampling strategies under a fixed eight-rollout budget.</figcaption>
+      </figure>
+    </section>
+
+    <section class="section takeaway">
+      <div class="takeaway-inner reveal">
+        <p class="section-number">The takeaway</p>
+        <blockquote>
+          Better reasoning does not require rewarding every token more carefully.
+          It requires revisiting the state where a better decision was possible.
+        </blockquote>
+        <a class="text-link" href="https://arxiv.org/abs/2605.25507">Explore the full paper <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <section class="section citation" id="citation">
+      <div class="section-heading narrow reveal">
+        <p class="section-number">06 / Citation</p>
+        <h2>Build on this work.</h2>
+        <p>If SRPO is useful in your research, please cite the paper.</p>
+      </div>
+      <div class="citation-box reveal">
+        <pre><code id="bibtex">@misc{samanta2026credit,
+  title         = {Credit Assignment with Resets in Language Model Reasoning},
+  author        = {Ankur Samanta and Akshayaa Magesh and Ayush Jain and
+                   Youliang Yu and Daniel Jiang and Kavosh Asadi and
+                   Kaveh Hassani and Paul Sajda and Jalaj Bhandari and
+                   Yonathan Efroni},
+  year          = {2026},
+  eprint        = {2605.25507},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG}
+}</code></pre>
+        <button class="copy-button" type="button" data-copy aria-label="Copy BibTeX citation">
+          <span data-copy-label>Copy BibTeX</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <a class="wordmark footer-mark" href="#top"><span class="wordmark-mark" aria-hidden="true">S</span><span>SRPO</span></a>
+      <p>Credit Assignment with Resets in Language Model Reasoning</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://arxiv.org/abs/2605.25507">Paper ↗</a>
+      <a href="https://github.com/Ankur-Samanta/SRPO">Code ↗</a>
+      <a href="https://github.com/Ankur-Samanta/SRPO/blob/main/LICENSE">MIT License ↗</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,62 @@
+name: Deploy project website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - "figures/tree_visualization.png"
+      - "figures/val_curves_lcb_medium.png"
+      - "figures/grad_tree_p2_effective.png"
+      - "figures/combined_4panel_eff5_lcb_medium_fine.png"
+      - "figures/sampling_strategies.svg"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          enablement: true
+
+      - name: Assemble static site
+        run: |
+          mkdir -p _site/figures
+          cp -a website/. _site/
+          cp figures/tree_visualization.png _site/figures/
+          cp figures/val_curves_lcb_medium.png _site/figures/
+          cp figures/grad_tree_p2_effective.png _site/figures/
+          cp figures/combined_4panel_eff5_lcb_medium_fine.png _site/figures/
+          cp figures/sampling_strategies.svg _site/figures/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

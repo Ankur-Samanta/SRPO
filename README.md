@@ -5,6 +5,8 @@
 
 📄 **Paper:** [arXiv:2605.25507](https://arxiv.org/abs/2605.25507)
 
+🌐 **Project page:** [ankur-samanta.github.io/SRPO](https://ankur-samanta.github.io/SRPO/)
+
 **Self-Reset Policy Optimization (SRPO)** — an RL method that improves credit assignment in
 language-model reasoning by *resetting* to an intermediate reasoning state and resampling
 counterfactual continuations from there, so that outcome differences are attributed to the
